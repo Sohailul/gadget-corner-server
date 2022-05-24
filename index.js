@@ -34,6 +34,7 @@ async function run() {
         const ordersCollection = client.db("dbgadgetcorner").collection("orders");
         const userCollection = client.db("dbgadgetcorner").collection("users");
         const reviewCollection = client.db("dbgadgetcorner").collection("reviews");
+        const profileCollection = client.db("dbgadgetcorner").collection("profile");
 
         const verifyAdmin = async (req, res, next) => {
             const requester = req.decoded.email;
@@ -81,6 +82,27 @@ async function run() {
             res.send({ result, token });
         })
 
+        // Profile
+        app.post('/profile', async (req, res) => {
+            const updateProfile = req.body;
+            const result = await profileCollection.insertOne(updateProfile);
+            res.send(result);
+        });
+
+        app.get('/profile', verifyJWT, async (req, res) => {
+            const email = req.query.email;
+            const decodedEmail = req.decoded.email;
+            if (email === decodedEmail) {
+                const query = { email: email };
+                const profile = await profileCollection.find(query).toArray();
+                res.send(profile);
+            }
+            else {
+                return res.status(403).send({ message: 'Forbidden access' });
+            }
+        })
+
+
         //Tools or Parts
         app.get('/tool', async (req, res) => {
             const query = {};
@@ -102,7 +124,7 @@ async function run() {
             res.send(tool);
         });
 
-        app.delete('/tool/:id',verifyJWT, async (req, res) => {
+        app.delete('/tool/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const result = await toolsCollection.deleteOne(query);
@@ -115,7 +137,7 @@ async function run() {
             const email = req.query.email;
             const decodedEmail = req.decoded.email;
             if (email === decodedEmail) {
-                const query = {email: email};
+                const query = { email: email };
                 const orders = await ordersCollection.find(query).toArray();
                 res.send(orders);
             }
@@ -130,7 +152,7 @@ async function run() {
             res.send(result);
         });
 
-        app.delete('/order/:id',verifyJWT, async (req, res) => {
+        app.delete('/order/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const result = await ordersCollection.deleteOne(query);
