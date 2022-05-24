@@ -81,6 +81,7 @@ async function run() {
             res.send({ result, token });
         })
 
+        //Tools or Parts
         app.get('/tool', async (req, res) => {
             const query = {};
             const cursor = toolsCollection.find(query);
@@ -88,11 +89,24 @@ async function run() {
             res.send(tools);
         })
 
+        app.post('/tool', verifyJWT, verifyAdmin, async (req, res) => {
+            const tool = req.body;
+            const result = await toolsCollection.insertOne(tool);
+            res.send(result);
+        });
+
         app.get('/tool/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const tool = await toolsCollection.findOne(query);
             res.send(tool);
+        });
+
+        app.delete('/tool/:id',verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await toolsCollection.deleteOne(query);
+            res.send(result);
         });
 
         //Orders
@@ -130,7 +144,7 @@ async function run() {
             const reviews = await cursor.toArray();
             res.send(reviews);
         });
-        
+
         app.post('/review', async (req, res) => {
             const newReview = req.body;
             const result = await reviewCollection.insertOne(newReview);
