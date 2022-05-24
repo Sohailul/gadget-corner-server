@@ -34,10 +34,38 @@ async function run() {
         const ordersCollection = client.db("dbgadgetcorner").collection("orders");
         const userCollection = client.db("dbgadgetcorner").collection("users");
 
+        const verifyAdmin = async (req, res, next) => {
+            const requester = req.decoded.email;
+            const requesterAccount = await userCollection.findOne({ email: requester });
+            if (requesterAccount.role === 'admin') {
+                next();
+            }
+            else {
+                res.status(403).send({ message: 'forbidden' });
+            }
+        }
+
         app.get('/user', verifyJWT, async (req, res) => {
             const users = await userCollection.find().toArray();
             res.send(users);
         });
+
+        app.get('/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = await userCollection.findOne({ email: email });
+            const isAdmin = user.role === 'admin';
+            res.send({ admin: isAdmin })
+        })
+
+        app.put('/user/admin/:email', verifyJWT, verifyAdmin, async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email };
+            const updateDoc = {
+                $set: { role: 'admin' },
+            };
+            const result = await userCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        })
 
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
@@ -67,18 +95,34 @@ async function run() {
         });
 
         //Orders
+
         app.get('/order', verifyJWT, async (req, res) => {
-            const query = {};
-            const cursor = ordersCollection.find(query);
-            const orders = await cursor.toArray();
-            res.send(orders);
-        })
+            const email = req.query.email;
+            const decodedEmail = req.decoded.email;
+            if (email === decodedEmail) {
+                const query = {email: email};
+                const orders = await ordersCollection.find(query).toArray();
+                res.send(orders);
+            }
+            else {
+                return res.status(403).send({ message: 'Forbidden access' });
+            }
+        });
 
         app.post('/order', async (req, res) => {
             const newOrder = req.body;
             const result = await ordersCollection.insertOne(newOrder);
             res.send(result);
         });
+
+        app.delete('/order/:id',verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await ordersCollection.deleteOne(query);
+            res.send(result);
+        });
+
+        //Reviews
     }
     finally {
 
