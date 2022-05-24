@@ -33,6 +33,7 @@ async function run() {
         const toolsCollection = client.db("dbgadgetcorner").collection("tools");
         const ordersCollection = client.db("dbgadgetcorner").collection("orders");
         const userCollection = client.db("dbgadgetcorner").collection("users");
+        const reviewCollection = client.db("dbgadgetcorner").collection("reviews");
 
         const verifyAdmin = async (req, res, next) => {
             const requester = req.decoded.email;
@@ -123,6 +124,18 @@ async function run() {
         });
 
         //Reviews
+        app.get('/review', async (req, res) => {
+            const query = {};
+            const cursor = reviewCollection.find(query);
+            const reviews = await cursor.toArray();
+            res.send(reviews);
+        });
+        
+        app.post('/review', async (req, res) => {
+            const newReview = req.body;
+            const result = await reviewCollection.insertOne(newReview);
+            res.send(result);
+        });
     }
     finally {
 
