@@ -188,7 +188,7 @@ async function run() {
             const result = await paymentCollection.insertOne(payment);
             const updatedOrder = await ordersCollection.updateOne(filter, updatedDoc);
             res.send(updatedOrder);
-          })
+          });
 
         app.post('/order', async (req, res) => {
             const newOrder = req.body;
