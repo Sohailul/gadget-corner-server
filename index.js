@@ -115,7 +115,7 @@ async function run() {
             else {
                 return res.status(403).send({ message: 'Forbidden access' });
             }
-        })
+        });
 
 
         //Tools or Parts
@@ -124,7 +124,7 @@ async function run() {
             const cursor = toolsCollection.find(query);
             const tools = await cursor.toArray();
             res.send(tools);
-        })
+        });
 
         app.post('/tool', verifyJWT, verifyAdmin, async (req, res) => {
             const tool = req.body;
@@ -166,13 +166,14 @@ async function run() {
             const cursor = ordersCollection.find(query);
             const orders = await cursor.toArray();
             res.send(orders);
-        })
+        });
+
         app.get('/order/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const order = await ordersCollection.findOne(query);
             res.send(order);
-        })
+        });
 
         app.patch('/order/:id', verifyJWT, async(req, res) =>{
             const id  = req.params.id;
