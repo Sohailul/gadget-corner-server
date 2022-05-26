@@ -49,6 +49,7 @@ async function run() {
             }
         }
 
+        //Payment API
         app.post('/create-payment-intent', verifyJWT, async (req, res) => {
             const service = req.body;
             const price = service.price;
@@ -61,7 +62,7 @@ async function run() {
             res.send({ clientSecret: paymentIntent.client_secret })
         });
 
-
+        //User API
         app.get('/user', verifyJWT, async (req, res) => {
             const users = await userCollection.find().toArray();
             res.send(users);
@@ -175,21 +176,21 @@ async function run() {
             res.send(order);
         });
 
-        app.patch('/order/:id', verifyJWT, async(req, res) =>{
-            const id  = req.params.id;
+        app.patch('/order/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
             const payment = req.body;
-            const filter = {_id: ObjectId(id)};
+            const filter = { _id: ObjectId(id) };
             const updatedDoc = {
-              $set: {
-                paid: true,
-                transactionId: payment.transactionId
-              }
+                $set: {
+                    paid: true,
+                    transactionId: payment.transactionId
+                }
             }
-      
+
             const result = await paymentCollection.insertOne(payment);
             const updatedOrder = await ordersCollection.updateOne(filter, updatedDoc);
             res.send(updatedOrder);
-          });
+        });
 
         app.post('/order', async (req, res) => {
             const newOrder = req.body;
